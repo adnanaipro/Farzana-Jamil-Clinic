@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="750" viewBox="0 0 900 750" fill="none">
+  <title>Abstract location artwork, not a real map</title>
+  <rect width="900" height="750" fill="#EAF3F0"/>
+  <g fill="#F6F8F5" stroke="#D8E3DF" stroke-width="1.5"><rect x="40" y="50" width="210" height="170" rx="16"/><rect x="305" y="50" width="210" height="170" rx="16"/><rect x="40" y="275" width="210" height="170" rx="16"/><rect x="305" y="275" width="210" height="170" rx="16"/><rect x="40" y="500" width="210" height="195" rx="16"/><rect x="305" y="500" width="210" height="195" rx="16"/><rect x="570" y="50" width="285" height="280" rx="16"/><rect x="570" y="390" width="285" height="305" rx="16"/></g>
+  <path d="M-30 247h390c105 0 188 87 188 190v343" stroke="#FFFFFF" stroke-width="25"/>
+  <path d="M-30 247h390c105 0 188 87 188 190v343" stroke="#E9785D" stroke-width="3"/>
+  <circle cx="548" cy="445" r="70" fill="#EAF3F0" stroke="#0E7C78" stroke-width="1.5"/><circle cx="548" cy="445" r="42" fill="#102A33"/>
+  <path d="M548 428v34m-17-17h34" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/><circle cx="150" cy="247" r="7" fill="#E9785D"/>
+</svg>
