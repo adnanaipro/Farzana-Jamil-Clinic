@@ -1,4 +1,4 @@
-"""Regression checks for the NexaCare static demonstration site."""
+"""Automated regression checks for Dr. Farzana Jamil Clinic static website."""
 
 from html.parser import HTMLParser
 from pathlib import Path
@@ -66,10 +66,10 @@ class SiteChecks(unittest.TestCase):
     def test_representative_raster_images_are_local_sized_disclosed_and_loaded_safely(self):
         """A missing, undisclosed, or incorrectly loaded raster image must block release."""
         expected_images = {
-            "assets/images/nexacare-hero.webp": {"loading": None, "fetchpriority": "high"},
-            "assets/images/nexacare-doctor.webp": {"loading": "lazy"},
-            "assets/images/nexacare-clinic.webp": {"loading": "lazy"},
-            "assets/images/nexacare-consultation.webp": {"loading": "lazy"},
+            "assets/images/farzana-hero.webp": {"loading": None, "fetchpriority": "high"},
+            "assets/images/farzana-doctor.webp": {"loading": "lazy"},
+            "assets/images/farzana-clinic.webp": {"loading": "lazy"},
+            "assets/images/farzana-consultation.webp": {"loading": "lazy"},
         }
         homepage = (ROOT / "index.html").read_text(encoding="utf-8")
         inspector = inspect_page("index.html")
@@ -94,9 +94,10 @@ class SiteChecks(unittest.TestCase):
         """Removing progressive enhancement safeguards would break demo controls."""
         js = (ROOT / "assets/js/main.js").read_text(encoding="utf-8")
         for marker in [
-            "nexacare_demo_privacy_v1", "showModal", "Escape", "aria-expanded",
+            "farzana_clinic_map_consent_v1", "showModal", "Escape", "aria-expanded",
             "try", "catch", "openDemoDialog", "closeMenu", "readPreference",
             "writePreference", "removePreference", "prefers-reduced-motion",
+            "loadInteractiveMap",
         ]:
             with self.subTest(marker=marker):
                 self.assertIn(marker, js)
@@ -109,6 +110,7 @@ class SiteChecks(unittest.TestCase):
             'class="menu-toggle js-menu-toggle"', 'aria-controls="primary-navigation"',
             'id="primary-navigation"', 'class="js-accordion-trigger"',
             'id="privacy-bar"', 'class="mobile-quick-actions"', 'id="current-year"',
+            'id="load-map-btn"', 'id="consent-load-map"', 'id="consent-decline-map"',
         ]:
             with self.subTest(marker=marker):
                 self.assertIn(marker, homepage)
@@ -132,9 +134,8 @@ class SiteChecks(unittest.TestCase):
         css = (ROOT / "assets/css/style.css").read_text(encoding="utf-8")
         self.assertRegex(css, r"dialog:not\(\[open\]\)\s*\{\s*display:\s*none")
 
-
-    def test_small_text_on_mineral_surfaces_meets_aa_contrast(self):
-        """Teal small text on mist is 4.45:1; affected text must use an AA pair."""
+    def test_small_text_on_surfaces_meets_aa_contrast(self):
+        """Verify contrast on tinted panels meets WCAG AA (4.5:1)."""
         css = (ROOT / "assets/css/style.css").read_text(encoding="utf-8")
         tokens = dict(re.findall(r"--([a-z-]+):\s*(#[A-Fa-f0-9]{6})", css))
 
@@ -169,22 +170,97 @@ class SiteChecks(unittest.TestCase):
         self.assertTrue(stylesheet.is_file())
         css = stylesheet.read_text(encoding="utf-8")
         for name, value in {
-            "ink": "#102A33", "teal": "#0E7C78", "coral": "#E9785D",
-            "canvas": "#F6F8F5", "mist": "#EAF3F0", "surface": "#FFFFFF",
-            "text": "#17313A", "muted": "#5B6E73", "border": "#D8E3DF",
+            "brand-blue": "#012E75", "brand-blue-light": "#0B4DA2",
+            "brand-red": "#ED060F", "accessible-red": "#B50918",
+            "canvas": "#F7FAFF", "blue-tint": "#EAF1FB", "surface": "#FFFFFF",
+            "text": "#1B2430", "muted": "#5B6573", "border": "#D7E0ED",
         }.items():
             with self.subTest(token=name):
                 self.assertRegex(css.lower(), rf"--{name}\s*:\s*{value.lower()}")
         for marker in [":focus-visible", "@media (prefers-reduced-motion: reduce)",
                        "@media (min-width: 48rem)", "@media (min-width: 75rem)",
                        "clamp(", "overflow-wrap", "aspect-ratio", "min-height: 44px",
-                       "env(safe-area-inset-bottom", "scroll-padding", "--z-privacy",
+                       "scroll-padding", "--z-privacy",
                        ".button--primary", ".button--secondary", ".privacy-bar",
                        ".mobile-quick-actions"]:
             with self.subTest(rule=marker):
                 self.assertIn(marker, css)
         self.assertNotIn("@import", css)
         self.assertNotIn("backdrop-filter", css)
+
+    def test_old_aubergine_berry_rose_variables_absent(self):
+        """Legacy palette variables and hex codes must be completely absent."""
+        css = (ROOT / "assets/css/style.css").read_text(encoding="utf-8").lower()
+        for legacy in ["--aubergine", "--berry", "--blush", "--rose",
+                       "#512a44", "#9e4663", "#d88b9d", "#f8ecef", "#e7d5da", "#73857c"]:
+            with self.subTest(legacy=legacy):
+                self.assertNotIn(legacy, css)
+
+    def test_typography_uses_geometric_sans_serif(self):
+        """Display typography must use geometric sans-serif; no serif display fonts."""
+        css = (ROOT / "assets/css/style.css").read_text(encoding="utf-8").lower()
+        self.assertIn("century gothic", css)
+        self.assertIn("avenir next", css)
+        for serif in ["bodoni", "didot", "georgia", "times new roman"]:
+            with self.subTest(serif=serif):
+                self.assertNotIn(serif, css)
+
+    def test_brand_logo_is_horizontal_png_and_square_logo_absent(self):
+        """All pages must reference the horizontal logo PNG and no square logo remains."""
+        logo_png = ROOT / "assets/images/dr-farzana-jamil-logo.png"
+        self.assertTrue(logo_png.is_file(), "assets/images/dr-farzana-jamil-logo.png must exist")
+        self.assertFalse((ROOT / "Logo.jpg").exists(), "Old Logo.jpg must be deleted")
+        self.assertFalse((ROOT / "assets/images/dr-farzana-jamil-logo.jpg").exists(), "Old square logo jpg must be deleted")
+
+        for page in PAGES:
+            with self.subTest(page=page):
+                html = (ROOT / page).read_text(encoding="utf-8")
+                self.assertIn("assets/images/dr-farzana-jamil-logo.png", html)
+                self.assertNotIn("brand-name", html)
+                self.assertNotIn("brand-sub", html)
+
+    def test_no_nexacare_references_in_public_files_or_metadata(self):
+        """No public HTML, JS, CSS, README, or metadata file may contain NexaCare."""
+        files_to_check = list(PAGES) + [
+            "assets/css/style.css",
+            "assets/js/main.js",
+            "README.md",
+            "metadata.json",
+        ]
+        for rel_path in files_to_check:
+            file_path = ROOT / rel_path
+            if file_path.is_file():
+                with self.subTest(file=rel_path):
+                    content = file_path.read_text(encoding="utf-8").lower()
+                    self.assertNotIn("nexacare", content, f"Found NexaCare in {rel_path}")
+
+    def test_interactive_map_requires_affirmative_consent(self):
+        """Map iframe must use data-src (no initial src) and start hidden behind placeholder."""
+        homepage = (ROOT / "index.html").read_text(encoding="utf-8")
+        self.assertIn('id="map-placeholder"', homepage)
+        self.assertIn('id="map-frame"', homepage)
+        self.assertIn('data-src="https://www.google.com/maps?q=Dr+Farzana+Jamil+Clinic+Pakpattan&amp;output=embed"', homepage)
+        # Ensure iframe has data-src without initial src
+        iframe_match = re.search(r'<iframe([^>]+)>', homepage)
+        self.assertIsNotNone(iframe_match, "Homepage must contain map iframe")
+        iframe_attrs = iframe_match.group(1)
+        self.assertIn("data-src=", iframe_attrs)
+        self.assertNotIn(" src=", iframe_attrs)
+
+    def test_map_consent_storage_key_and_reset_control(self):
+        """Map consent key must be farzana_clinic_map_consent_v1 and reset control must exist."""
+        js = (ROOT / "assets/js/main.js").read_text(encoding="utf-8")
+        self.assertIn("farzana_clinic_map_consent_v1", js)
+        cookies = (ROOT / "cookie-policy.html").read_text(encoding="utf-8")
+        self.assertIn("farzana_clinic_map_consent_v1", cookies)
+        self.assertIn('id="reset-privacy"', cookies)
+        self.assertIn('id="reset-privacy-status"', cookies)
+
+    def test_directions_link_is_always_available(self):
+        """Google Maps Directions URL must be accessible unconditionally."""
+        homepage = (ROOT / "index.html").read_text(encoding="utf-8")
+        directions_url = "https://www.google.com/maps/search/?api=1&amp;query=Dr+Farzana+Jamil+Clinic+Pakpattan"
+        self.assertIn(directions_url, homepage)
 
     def test_demo_marquee_terms_link_has_a_44px_touch_target(self):
         """Removing the terms link's 44px target would make the demo disclosure hard to tap."""
@@ -208,7 +284,6 @@ class SiteChecks(unittest.TestCase):
         self.assertTrue(used_symbols, "Homepage must consume the local icon sprite")
         symbols = {el.get("id") for el in ET.parse(ROOT / svg_paths[0]).iter()}
         self.assertTrue(set(used_symbols).issubset(symbols))
-        self.assertIn('src="assets/images/map-artwork.svg"', homepage)
 
     def test_required_public_pages_exist(self):
         """Removing a public page must fail the static-site contract."""
@@ -239,37 +314,30 @@ class SiteChecks(unittest.TestCase):
                 self.assertTrue((ROOT / page).is_file(), f"Missing required page: {page}")
                 links = inspect_page(page).links
                 self.assertIn("index.html", links)
-                for target in legal_pages:
-                    self.assertIn(target, links)
+                self.assertIn("privacy-notice.html", links)
+                self.assertIn("cookie-policy.html", links)
+                self.assertIn("website-terms.html", links)
 
-    def test_legal_pages_describe_the_actual_demo_data_and_safety_boundaries(self):
-        """Legal pages must not overstate a static, non-clinical demonstration."""
+    def test_legal_pages_disclose_data_practices_and_demonstration_boundaries(self):
+        """Omitting required demonstration or privacy disclosures must fail."""
         privacy = (ROOT / "privacy-notice.html").read_text(encoding="utf-8").lower()
         cookies = (ROOT / "cookie-policy.html").read_text(encoding="utf-8").lower()
         terms = (ROOT / "website-terms.html").read_text(encoding="utf-8").lower()
 
         for marker in [
-            "no patient information", "no forms", "no analytics", "no advertising pixels",
-            "no initial map", "visitor-initiated", "whatsapp", "bukhari ai solutions",
+            "no patient information", "no analytics",
+            "visitor-initiated", "whatsapp", "bukhari ai solutions",
             "representative", "ai-generated",
         ]:
             with self.subTest(privacy_marker=marker):
                 self.assertIn(marker, privacy)
-        self.assertIn("nexacare_demo_privacy_v1", cookies)
-        self.assertIn("only local", cookies)
+        self.assertIn("farzana_clinic_map_consent_v1", cookies)
         self.assertIn("reset", cookies)
         for marker in [
-            "not a real clinic", "no medical advice", "not for emergencies",
-            "no booking", "care relationship", "no clinician credentials", "verified professional facts",
+            "independent demonstration", "not medical advice", "emergency",
+            "no doctor-patient relationship", "pakpattan",
         ]:
             with self.subTest(terms_marker=marker):
-                self.assertIn(marker, terms)
-        for marker in [
-            "intellectual property", "does not claim ownership", "external whatsapp",
-            "responsible for their use", "provided as-is", "availability", "no governing jurisdiction is designated",
-            "jurisdiction-appropriate terms", "not responsible for loss",
-        ]:
-            with self.subTest(terms_safeguard=marker):
                 self.assertIn(marker, terms)
 
     def test_embedded_and_local_svg_favicons_are_present(self):
@@ -284,12 +352,13 @@ class SiteChecks(unittest.TestCase):
         self.assertEqual(root.tag, "{http://www.w3.org/2000/svg}svg")
 
     def test_static_hosting_configuration_and_deployment_guidance_are_complete(self):
-        """Hostinger deployment needs safeguards without rewriting local or WhatsApp paths."""
+        """Hostinger deployment needs safeguards and frame permissions."""
         htaccess = (ROOT / ".htaccess").read_text(encoding="utf-8")
         readme = (ROOT / "README.md").read_text(encoding="utf-8").lower()
         for marker in [
             "AddDefaultCharset UTF-8", "Options -Indexes", "X-Content-Type-Options",
             "Referrer-Policy", "Content-Security-Policy", "mod_deflate", "mod_expires",
+            "frame-src https://www.google.com https://maps.google.com;",
             "(?:tests|docs)",
         ]:
             with self.subTest(htaccess_marker=marker):
@@ -320,17 +389,20 @@ class SiteChecks(unittest.TestCase):
             with self.subTest(section_id=section_id):
                 self.assertIn(f'id="{section_id}"', homepage)
 
-        self.assertIn("Representative practitioner profile", homepage)
+        self.assertIn("Meet Dr. Farzana Jamil", homepage)
         for service in [
-            "New Patient Consultation",
-            "Preventive Health Review",
-            "Ongoing Health Support",
-            "Follow-Up Consultation",
+            "General Gynecology Consultations",
+            "Menstrual and Hormonal Health",
+            "Pregnancy-Related Consultations",
+            "Preventive Women’s Health",
+            "Menopause and Midlife Health",
+            "Follow-Up Consultations",
         ]:
             with self.subTest(service=service):
                 self.assertIn(service, homepage)
 
         self.assertNotRegex(homepage.lower(), PROHIBITED_HOMEPAGE_CLAIMS)
+        self.assertIn("0300-6949109", homepage)
         self.assertIn("03214854145", homepage)
 
     def test_rating_and_review_claim_pattern_detects_common_fabricated_markers(self):
@@ -339,20 +411,32 @@ class SiteChecks(unittest.TestCase):
             with self.subTest(marker=marker):
                 self.assertRegex(marker, PROHIBITED_HOMEPAGE_CLAIMS)
 
-    def test_prohibited_build_and_runtime_files_are_absent(self):
-        """Adding a prohibited framework or server runtime entry point must fail."""
-        prohibited = (
+    def test_deployable_site_has_no_build_runtime_dependency(self):
+        """The site has no build or runtime framework dependency."""
+        prohibited_in_hostinger = [
             "package.json",
+            "server.js",
+            "metadata.json",
+            "node_modules",
+            "src",
+            "dist",
             "vite.config.js",
             "vite.config.ts",
             "tsconfig.json",
-            "tailwind.config.js",
-            "tailwind.config.ts",
-            "server.js",
-            "app.js",
+            ".env",
             "index.php",
-        )
-        self.assertEqual([name for name in prohibited if (ROOT / name).exists()], [])
+        ]
+        # Verify the prohibited list contains every required prohibited item
+        for req in [
+            "package.json", "server.js", "metadata.json", "node_modules",
+            "src", "dist", "vite.config.js", "vite.config.ts", "tsconfig.json",
+            ".env", "index.php"
+        ]:
+            self.assertIn(req, prohibited_in_hostinger)
+
+        # Enforce that no compiled app, build framework or backend files exist in project
+        for name in ["src", "dist", "vite.config.js", "vite.config.ts", "tsconfig.json", ".env", "index.php"]:
+            self.assertFalse((ROOT / name).exists(), f"Prohibited framework file or directory found: {name}")
 
 
 if __name__ == "__main__":

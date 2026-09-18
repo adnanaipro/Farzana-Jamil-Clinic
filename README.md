@@ -1,6 +1,6 @@
-# NexaCare Medical
+# Dr. Farzana Jamil Clinic
 
-NexaCare Medical is an independent, fictional static website demonstration concept by Bukhari AI Solutions. It is not a clinic, does not provide medical advice, and is not for emergencies. The project has no patient form, booking flow, analytics, advertising pixels, or external runtime services.
+Dr. Farzana Jamil Clinic is an independent static website demonstration concept created by Bukhari AI for presentation purposes. It is a proposed design for a female gynecologist and women’s health clinic at City Hospital in Pakpattan, Punjab, Pakistan. It does not provide medical advice and is not for emergencies. The project has no patient form, booking flow, analytics, advertising pixels, or external runtime services.
 
 ## Project structure
 
@@ -31,9 +31,10 @@ NexaCare Medical is an independent, fictional static website demonstration conce
 
 1. Keep the root files and `assets/` folder together; their relative paths are the production paths.
 2. In Hostinger File Manager, open the target domain’s `public_html` directory.
-3. Upload the contents of this project into `public_html` (not the enclosing project folder), including `.htaccess`, `robots.txt`, `favicon.svg`, all HTML files, and `assets/`.
-4. Confirm the domain serves `index.html`, stylesheet, JavaScript, images, legal pages, and the visitor-initiated WhatsApp link without missing assets.
-5. Retain the `noindex, nofollow, noarchive, nosnippet` meta tag and `robots.txt` block while this remains a demonstration.
+3. Upload the public HTML files (`index.html`, `privacy-notice.html`, `cookie-policy.html`, `website-terms.html`), `.htaccess`, `robots.txt`, `favicon.svg` and the `assets` directory directly into Hostinger `public_html` (not in an enclosing subfolder).
+4. No Node.js runtime, build step or npm command is required.
+5. Confirm the domain serves `index.html`, stylesheet, JavaScript, images, legal pages, and the visitor-initiated WhatsApp link without missing assets.
+6. Retain the `noindex, nofollow, noarchive, nosnippet` meta tag and `robots.txt` block while this remains a demonstration.
 
 ## Client conversion checklist
 
@@ -46,7 +47,7 @@ Before converting this demo into a live clinic site, replace or approve every de
 - A legal review of the Privacy Notice, Cookie Policy, and Website Terms for the clinic’s jurisdiction and actual data practices.
 - A final test of all contacts, WhatsApp, maps, booking links, mobile layout, HTTPS, accessibility, and production indexing settings.
 
-The only live contact in this demo is a visitor-initiated WhatsApp link to Bukhari AI Solutions. Replace it only with an approved public destination.
+The only live contact in this demo is a visitor-initiated WhatsApp link to Bukhari AI. Replace it only with an approved public destination.
 
 ## Checks
 

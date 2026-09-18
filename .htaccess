@@ -10,8 +10,8 @@ DirectoryIndex index.html
   Header always set Permissions-Policy "geolocation=(), camera=(), microphone=(), payment=(), usb=()"
   Header always set Cross-Origin-Resource-Policy "same-origin"
   Header always set X-Permitted-Cross-Domain-Policies "none"
-  Header always set Content-Security-Policy "default-src 'self'; base-uri 'self'; connect-src 'none'; form-action 'none'; frame-ancestors 'self'; img-src 'self' data:; object-src 'none'; script-src 'self'; style-src 'self'"
-  <FilesMatch "\.(?:css|js|svg|webp)$">
+  Header always set Content-Security-Policy "default-src 'self'; base-uri 'self'; connect-src 'none'; form-action 'none'; frame-ancestors 'self'; frame-src https://www.google.com https://maps.google.com; img-src 'self' data:; object-src 'none'; script-src 'self'; style-src 'self'"
+  <FilesMatch "\.(?:css|js|svg|webp|png)$">
     Header always set Cache-Control "public, max-age=86400, must-revalidate"
   </FilesMatch>
 </IfModule>
@@ -27,6 +27,7 @@ DirectoryIndex index.html
   ExpiresByType application/javascript "access plus 1 day"
   ExpiresByType image/svg+xml "access plus 1 day"
   ExpiresByType image/webp "access plus 1 day"
+  ExpiresByType image/png "access plus 1 day"
 </IfModule>
 
 <IfModule mod_rewrite.c>

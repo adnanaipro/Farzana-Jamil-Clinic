@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const STORAGE_KEY = "nexacare_demo_privacy_v1";
+  const STORAGE_KEY = "farzana_clinic_map_consent_v1";
   const root = document.documentElement;
   const body = document.body;
   const menuToggle = document.querySelector(".js-menu-toggle");
@@ -10,7 +10,11 @@
   const dialogMessage = dialog?.querySelector("[data-dialog-message]");
   const dialogClose = dialog?.querySelector(".js-dialog-close");
   const privacyBar = document.querySelector("#privacy-bar");
-  const acknowledgePrivacy = document.querySelector("#acknowledge-privacy");
+  const consentLoadMap = document.querySelector("#consent-load-map");
+  const consentDeclineMap = document.querySelector("#consent-decline-map");
+  const loadMapBtn = document.querySelector("#load-map-btn");
+  const mapFrame = document.querySelector("#map-frame");
+  const mapPlaceholder = document.querySelector("#map-placeholder");
   const resetPrivacy = document.querySelector("#reset-privacy");
   const resetStatus = document.querySelector("#reset-privacy-status");
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -37,6 +41,18 @@
       localStorage.removeItem(STORAGE_KEY);
     } catch {
       // A blocked storage area does not prevent visitors from using the page.
+    }
+  }
+
+  function loadInteractiveMap() {
+    if (!mapFrame) return;
+    const iframe = mapFrame.querySelector("iframe[data-src]");
+    if (iframe && !iframe.getAttribute("src")) {
+      iframe.setAttribute("src", iframe.getAttribute("data-src"));
+    }
+    mapFrame.hidden = false;
+    if (mapPlaceholder) {
+      mapPlaceholder.hidden = true;
     }
   }
 
@@ -186,23 +202,44 @@
   dialogClose?.addEventListener("click", closeDemoDialog);
   dialog?.addEventListener("close", restoreDemoFocus);
 
-  acknowledgePrivacy?.addEventListener("click", () => {
-    writePreference("acknowledged");
+  consentLoadMap?.addEventListener("click", () => {
+    writePreference("granted");
+    loadInteractiveMap();
     hidePrivacyBar();
   });
+
+  consentDeclineMap?.addEventListener("click", () => {
+    writePreference("declined");
+    hidePrivacyBar();
+  });
+
+  loadMapBtn?.addEventListener("click", () => {
+    writePreference("granted");
+    loadInteractiveMap();
+    hidePrivacyBar();
+  });
+
   resetPrivacy?.addEventListener("click", () => {
     removePreference();
     if (resetStatus) {
       resetStatus.hidden = false;
-      resetStatus.textContent = "Your local acknowledgement was reset. The information bar will appear when you return to the homepage.";
+      resetStatus.textContent = "Your map preference has been reset. The preference notice will appear when you return to the homepage, and the interactive map will remain blocked until permission is granted.";
     }
   });
 
   document.querySelectorAll("#current-year").forEach((year) => {
     year.textContent = String(new Date().getFullYear());
   });
+
   if (menu && menuToggle && window.matchMedia("(max-width: 74.99rem)").matches) closeMenu();
-  if (privacyBar && readPreference() !== "acknowledged") showPrivacyBar();
+
+  const currentPreference = readPreference();
+  if (currentPreference === "granted") {
+    loadInteractiveMap();
+  } else if (!currentPreference) {
+    if (privacyBar) showPrivacyBar();
+  }
+
   setupAccordions();
   setupReveals();
   window.addEventListener("resize", measurePersistentUi, { passive: true });
